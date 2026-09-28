@@ -1,0 +1,5 @@
+Contact: TODO: thêm email hoặc URL form liên hệ công khai
+Preferred-Languages: vi, en
+Policy: https://TODO.pages.dev/contact/
+Expires: 2027-09-28T00:00:00.000Z
+
