@@ -1,0 +1,58 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { withBase } from "../../utils/paths";
+
+export async function getStaticPaths() {
+  const projects = (await getCollection("projects"))
+    .filter((project) => !import.meta.env.PROD || !project.data.draft)
+    .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project, projects },
+  }));
+}
+
+const { project, projects } = Astro.props;
+const { Content } = await render(project);
+const currentIndex = projects.findIndex((item) => item.id === project.id);
+const previousProject = projects[currentIndex + 1];
+const nextProject = projects[currentIndex - 1];
+const statusLabels = { done: "Hoàn thành", "in-progress": "Đang làm", archived: "Lưu trữ" };
+const formattedDate = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "long", year: "numeric" }).format(project.data.date);
+---
+
+<BaseLayout title={project.data.title} description={project.data.summary}>
+  <section class="section page-hero project-detail-hero">
+    <div class="container narrow">
+      <a class="back-link" href={withBase("/projects/")}>← Tất cả projects</a>
+      <p class="eyebrow">project</p>
+      <h1>{project.data.title}</h1>
+      <p class="lead">{project.data.summary}</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container project-detail-grid">
+      <article class="project-content prose-content"><Content /></article>
+      <aside class="project-sidebar" aria-label="Thông tin project">
+        <dl>
+          <div><dt>Ngày</dt><dd><time datetime={project.data.date.toISOString()}>{formattedDate}</time></dd></div>
+          <div><dt>Trạng thái</dt><dd>{statusLabels[project.data.status]}</dd></div>
+          <div><dt>Tags</dt><dd class="tag-list">{project.data.tags.map((tag) => <span class="tag">{tag}</span>)}</dd></div>
+        </dl>
+        <div class="sidebar-links">
+          {project.data.repo && <a class="button button-secondary" href={project.data.repo} target="_blank" rel="noopener noreferrer">Mã nguồn ↗</a>}
+          {project.data.demo && <a class="button button-primary" href={project.data.demo} target="_blank" rel="noopener noreferrer">Xem demo ↗</a>}
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <nav class="container project-pagination" aria-label="Điều hướng project">
+    {previousProject ? <a href={withBase(`/projects/${previousProject.id}/`)}>← <span>Trước</span>{previousProject.data.title}</a> : <span></span>}
+    {nextProject && <a href={withBase(`/projects/${nextProject.id}/`)}><span>Tiếp</span>{nextProject.data.title} →</a>}
+  </nav>
+</BaseLayout>
+

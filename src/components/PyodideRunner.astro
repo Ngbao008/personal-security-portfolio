@@ -1,0 +1,90 @@
+---
+interface Props {
+  pyFile: string;
+}
+
+const { pyFile } = Astro.props;
+---
+
+<section class="lab-runner" data-py-runner data-py-file={pyFile}>
+  <h2>Chạy thử bằng Python</h2>
+  <p class="runner-note">Lần chạy đầu tải môi trường Python vài MB. Mã chỉ chạy trong trình duyệt của bạn và sẽ dừng sau 10 giây.</p>
+  <div class="form-field">
+    <label for="python-lab-input">Dữ liệu đầu vào</label>
+    <textarea id="python-lab-input" rows="7" maxlength="100000" data-py-input></textarea>
+  </div>
+  <div class="runner-actions">
+    <button class="button button-primary" type="button" data-py-run>Run</button>
+    <button class="button button-secondary" type="button" data-py-clear>Clear</button>
+  </div>
+  <div class="lab-output-wrap">
+    <p class="output-label">Output</p>
+    <pre class="lab-output" tabindex="0" data-py-output></pre>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-py-runner]").forEach((runner) => {
+    const input = runner.querySelector<HTMLTextAreaElement>("[data-py-input]");
+    const output = runner.querySelector<HTMLElement>("[data-py-output]");
+    const runButton = runner.querySelector<HTMLButtonElement>("[data-py-run]");
+    const clearButton = runner.querySelector<HTMLButtonElement>("[data-py-clear]");
+    const pyFile = runner.dataset.pyFile;
+    let worker: Worker | undefined;
+    let timeout: number | undefined;
+
+    const stopWorker = () => {
+      if (timeout) window.clearTimeout(timeout);
+      timeout = undefined;
+      worker?.terminate();
+      worker = undefined;
+    };
+
+    const finish = (message: string) => {
+      if (timeout) window.clearTimeout(timeout);
+      timeout = undefined;
+      if (output) output.textContent = message;
+      if (runButton) runButton.disabled = false;
+    };
+
+    runButton?.addEventListener("click", async () => {
+      if (!input || !output || !pyFile) return;
+      if (input.value.length > 100000) {
+        output.textContent = "Dữ liệu đầu vào vượt quá giới hạn 100 KB.";
+        return;
+      }
+      runButton.disabled = true;
+      output.textContent = "Đang tải mã Python…";
+      try {
+        const response = await fetch(pyFile, { credentials: "same-origin" });
+        if (!response.ok) throw new Error("Không thể tải tệp Python.");
+        const code = await response.text();
+        stopWorker();
+        worker = new Worker(new URL("../workers/pyodide.worker.ts", import.meta.url), { type: "module" });
+        worker.addEventListener("message", (event: MessageEvent<{ type: string; output?: string; message?: string }>) => {
+          if (event.data.type === "loading") {
+            output.textContent = "Đang tải môi trường Python lần đầu…";
+          } else if (event.data.type === "result") {
+            finish(event.data.output ?? "");
+          } else if (event.data.type === "error") {
+            finish(`Lỗi Python: ${event.data.message ?? "Không thể chạy mã."}`);
+          }
+        });
+        worker.addEventListener("error", () => finish("Không thể khởi tạo môi trường Python."));
+        timeout = window.setTimeout(() => {
+          stopWorker();
+          finish("Chạy quá thời gian 10 giây và đã được dừng an toàn.");
+        }, 10000);
+        worker.postMessage({ code, input: input.value });
+      } catch (error) {
+        finish(`Lỗi: ${error instanceof Error ? error.message : "Không thể chuẩn bị môi trường Python."}`);
+      }
+    });
+
+    clearButton?.addEventListener("click", () => {
+      if (input) input.value = "";
+      if (output) output.textContent = "";
+    });
+  });
+</script>
+

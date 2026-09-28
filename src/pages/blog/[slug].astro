@@ -1,0 +1,45 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CodeTools from "../../components/CodeTools.astro";
+import { getReadingTime } from "../../utils/reading-time";
+import { withBase } from "../../utils/paths";
+
+export async function getStaticPaths() {
+  const posts = (await getCollection("blog")).filter((post) => !import.meta.env.PROD || !post.data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const readingTime = getReadingTime(post.body ?? "");
+const formattedDate = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "long", year: "numeric" }).format(post.data.date);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <section class="section page-hero blog-detail-hero">
+    <div class="container narrow">
+      <a class="back-link" href={withBase("/blog/")}>← Tất cả bài viết</a>
+      <p class="eyebrow">blog</p>
+      <h1>{post.data.title}</h1>
+      <p class="lead">{post.data.description}</p>
+      <p class="blog-meta"><time datetime={post.data.date.toISOString()}>{formattedDate}</time><span aria-hidden="true">·</span><span>{readingTime} phút đọc</span></p>
+      <div class="tag-list">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</div>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container post-layout">
+      <article class="prose-content post-content"><Content /><CodeTools /></article>
+      {headings.length > 0 && (
+        <aside class="table-of-contents" aria-label="Mục lục bài viết">
+          <p>Mục lục</p>
+          <ol>
+            {headings.filter((heading) => heading.depth <= 3).map((heading) => <li class:list={{ nested: heading.depth === 3 }}><a href={`#${heading.slug}`}>{heading.text}</a></li>)}
+          </ol>
+        </aside>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+

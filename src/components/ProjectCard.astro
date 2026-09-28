@@ -1,0 +1,37 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  project: CollectionEntry<"projects">;
+}
+
+const { project } = Astro.props;
+const statusLabels = { done: "Hoàn thành", "in-progress": "Đang làm", archived: "Lưu trữ" };
+const formattedDate = new Intl.DateTimeFormat("vi-VN", { month: "short", year: "numeric" }).format(project.data.date);
+---
+
+<article class="project-card" data-project data-title={project.data.title.toLowerCase()} data-tags={project.data.tags.join("|").toLowerCase()}>
+  {project.data.cover ? (
+    <img class="project-cover" src={withBase(project.data.cover)} alt={`Ảnh minh họa của ${project.data.title}`} loading="lazy" />
+  ) : (
+    <div class="project-cover project-cover-placeholder" aria-hidden="true"><span>&lt;/&gt;</span></div>
+  )}
+  <div class="project-card-body">
+    <div class="project-card-meta">
+      <time datetime={project.data.date.toISOString()}>{formattedDate}</time>
+      <span class:list={["status-badge", project.data.status]}>{statusLabels[project.data.status]}</span>
+    </div>
+    <h2><a href={withBase(`/projects/${project.id}/`)}>{project.data.title}</a></h2>
+    <p>{project.data.summary}</p>
+    <div class="tag-list project-tags">
+      {project.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+    </div>
+    <div class="project-links">
+      <a class="text-link" href={withBase(`/projects/${project.id}/`)}>Đọc chi tiết →</a>
+      {project.data.repo && <a class="text-link" href={project.data.repo} target="_blank" rel="noopener noreferrer">Mã nguồn ↗</a>}
+      {project.data.demo && <a class="text-link" href={project.data.demo} target="_blank" rel="noopener noreferrer">Demo ↗</a>}
+    </div>
+  </div>
+</article>
+

@@ -1,0 +1,74 @@
+---
+import { labTools } from "../lab-tools";
+
+interface Props {
+  toolId: keyof typeof labTools;
+}
+
+const { toolId } = Astro.props;
+const tool = labTools[toolId];
+---
+
+<section class="lab-runner" data-lab-runner data-tool-id={toolId}>
+  <h2>Chạy thử</h2>
+  <div class="form-field">
+    <label for={`lab-input-${toolId}`}>Dữ liệu đầu vào</label>
+    <textarea id={`lab-input-${toolId}`} rows="7" maxlength="100000" data-lab-input></textarea>
+  </div>
+  {tool.options && (
+    <div class="lab-options">
+      {tool.options.map((option) => (
+        <div class="form-field">
+          <label for={`lab-option-${toolId}-${option.key}`}>{option.label}</label>
+          {option.type === "select" ? (
+            <select id={`lab-option-${toolId}-${option.key}`} data-lab-option={option.key}>
+              {option.choices?.map((choice) => <option value={choice} selected={choice === option.default}>{choice}</option>)}
+            </select>
+          ) : (
+            <input id={`lab-option-${toolId}-${option.key}`} type={option.type} value={option.default} data-lab-option={option.key} />
+          )}
+        </div>
+      ))}
+    </div>
+  )}
+  <div class="runner-actions">
+    <button class="button button-primary" type="button" data-run>Run</button>
+    <button class="button button-secondary" type="button" data-clear>Clear</button>
+  </div>
+  <div class="lab-output-wrap">
+    <p class="output-label">Output</p>
+    <pre class="lab-output" tabindex="0" data-lab-output></pre>
+  </div>
+</section>
+
+<script>
+  import { labTools } from "../lab-tools";
+
+  document.querySelectorAll<HTMLElement>("[data-lab-runner]").forEach((runner) => {
+    const tool = labTools[runner.dataset.toolId as keyof typeof labTools];
+    const input = runner.querySelector<HTMLTextAreaElement>("[data-lab-input]");
+    const output = runner.querySelector<HTMLElement>("[data-lab-output]");
+    const runButton = runner.querySelector<HTMLButtonElement>("[data-run]");
+    const clearButton = runner.querySelector<HTMLButtonElement>("[data-clear]");
+
+    runButton?.addEventListener("click", async () => {
+      if (!tool || !input || !output) return;
+      const options = Object.fromEntries(Array.from(runner.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-lab-option]")).map((field) => [field.dataset.labOption ?? "", field.value]));
+      runButton.disabled = true;
+      output.textContent = "Đang xử lý…";
+      try {
+        output.textContent = await tool.run(input.value, options);
+      } catch (error) {
+        output.textContent = `Lỗi: ${error instanceof Error ? error.message : "Không thể xử lý dữ liệu."}`;
+      } finally {
+        runButton.disabled = false;
+      }
+    });
+
+    clearButton?.addEventListener("click", () => {
+      if (input) input.value = "";
+      if (output) output.textContent = "";
+    });
+  });
+</script>
+

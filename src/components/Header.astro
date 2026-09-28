@@ -1,0 +1,45 @@
+---
+import { site } from "../data/site";
+import ThemeToggle from "./ThemeToggle.astro";
+import { withBase } from "../utils/paths";
+
+const links = [
+  { href: withBase("/"), label: "Trang chủ" },
+  { href: withBase("/about/"), label: "Giới thiệu" },
+  { href: withBase("/projects/"), label: "Projects" },
+  { href: withBase("/lab/"), label: "Lab" },
+  { href: withBase("/blog/"), label: "Blog" },
+  { href: withBase("/contact/"), label: "Liên hệ" },
+];
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={withBase("/")} aria-label={`Về trang chủ của ${site.name}`}>
+      <span class="brand-mark" aria-hidden="true">&gt;_</span>
+      <span>{site.handle}</span>
+    </a>
+    <nav aria-label="Điều hướng chính">
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu" data-menu-toggle>
+        <span class="sr-only">Mở menu</span>
+        <span aria-hidden="true">☰</span>
+      </button>
+      <div class="nav-links" id="site-menu" data-menu>
+        {links.map((link) => <a href={link.href}>{link.label}</a>)}
+      </div>
+    </nav>
+    <ThemeToggle />
+  </div>
+</header>
+
+<script>
+  const menuToggle = document.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+
+  menuToggle?.addEventListener("click", () => {
+    const isOpen = menuToggle.getAttribute("aria-expanded") === "true";
+    menuToggle.setAttribute("aria-expanded", String(!isOpen));
+    menu?.toggleAttribute("data-open", !isOpen);
+  });
+</script>
+

@@ -1,0 +1,30 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  lab: CollectionEntry<"lab">;
+}
+
+const { lab } = Astro.props;
+const modeLabels = {
+  "browser-js": "Browser JS",
+  "browser-py": "Python / Pyodide",
+  embed: "Sandbox embed",
+  "view-only": "Chỉ xem",
+};
+---
+
+<article class="lab-card">
+  <div class="project-card-meta">
+    <span class="status-badge">{modeLabels[lab.data.mode]}</span>
+    <time datetime={lab.data.date.toISOString()}>{new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(lab.data.date)}</time>
+  </div>
+  <h2><a href={withBase(`/lab/${lab.id}/`)}>{lab.data.title}</a></h2>
+  <p>{lab.data.summary}</p>
+  <div class="tag-list project-tags">
+    {lab.data.tags.map((tag) => <span class="tag">{tag}</span>)}
+  </div>
+  <a class="text-link lab-card-link" href={withBase(`/lab/${lab.id}/`)}>{lab.data.mode === "view-only" ? "Xem mã nguồn →" : "Mở tool →"}</a>
+</article>
+

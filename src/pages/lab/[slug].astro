@@ -1,0 +1,72 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import CodeTools from "../../components/CodeTools.astro";
+import LabRunner from "../../components/LabRunner.astro";
+import PyodideRunner from "../../components/PyodideRunner.astro";
+import { labTools } from "../../lab-tools";
+import { withBase } from "../../utils/paths";
+
+export async function getStaticPaths() {
+  const labs = (await getCollection("lab")).filter((lab) => !import.meta.env.PROD || !lab.data.draft);
+  return labs.map((lab) => ({ params: { slug: lab.id }, props: { lab } }));
+}
+
+const { lab } = Astro.props;
+const { Content } = await render(lab);
+const toolId = lab.data.toolId as keyof typeof labTools | undefined;
+const modeLabels = {
+  "browser-js": "Chạy bằng JavaScript trong trình duyệt",
+  "browser-py": "Chạy Python/Pyodide trong Web Worker",
+  embed: "Nhúng sandbox bên thứ ba",
+  "view-only": "Chỉ xem mã nguồn",
+};
+---
+
+<BaseLayout title={lab.data.title} description={lab.data.summary}>
+  <section class="section page-hero lab-detail-hero">
+    <div class="container narrow">
+      <a class="back-link" href={withBase("/lab/")}>← Tất cả Lab</a>
+      <p class="eyebrow">{modeLabels[lab.data.mode]}</p>
+      <h1>{lab.data.title}</h1>
+      <p class="lead">{lab.data.summary}</p>
+      <div class="tag-list">{lab.data.tags.map((tag) => <span class="tag">{tag}</span>)}</div>
+    </div>
+  </section>
+
+  {lab.data.warning && (
+    <aside class="container lab-warning" role="note">
+      <strong>Cảnh báo</strong>
+      <p>{lab.data.warning}</p>
+    </aside>
+  )}
+
+  <section class="section section-muted">
+    <div class="container narrow">
+      {lab.data.mode === "browser-js" && toolId && <LabRunner toolId={toolId} />}
+      {lab.data.mode === "browser-py" && lab.data.pyFile && <PyodideRunner pyFile={withBase(lab.data.pyFile)} />}
+      {lab.data.mode === "embed" && lab.data.embedUrl && (
+        <section class="embed-runner">
+          <h2>Chạy thử trong sandbox</h2>
+          <iframe src={lab.data.embedUrl} title={lab.data.title} sandbox="allow-scripts allow-same-origin" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        </section>
+      )}
+      {lab.data.mode === "view-only" && (
+        <section class="view-only-note">
+          <h2>Chỉ xem mã nguồn</h2>
+          <p>Mã nguồn bên dưới không thực thi trên website. Copy hoặc tải về máy để chạy trong môi trường của bạn.</p>
+          {lab.data.downloadUrl && <a class="button button-secondary" href={withBase(lab.data.downloadUrl)} download>Tải tệp gốc ↓</a>}
+        </section>
+      )}
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow prose-content">
+      <Content />
+      <CodeTools />
+      {lab.data.repo && <p><a class="text-link" href={lab.data.repo} target="_blank" rel="noopener noreferrer">Xem trên GitHub ↗</a></p>}
+    </div>
+  </section>
+</BaseLayout>
+

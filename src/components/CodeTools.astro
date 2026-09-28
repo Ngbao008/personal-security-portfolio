@@ -1,0 +1,37 @@
+<script>
+  document.querySelectorAll<HTMLElement>(".prose-content pre").forEach((block, index) => {
+    const code = block.querySelector<HTMLElement>("code");
+    if (!code || block.dataset.codeTools) return;
+    block.dataset.codeTools = "ready";
+    const actions = document.createElement("div");
+    actions.className = "code-actions";
+    const copyButton = document.createElement("button");
+    const downloadButton = document.createElement("button");
+    copyButton.type = "button";
+    downloadButton.type = "button";
+    copyButton.textContent = "Copy";
+    downloadButton.textContent = "Tải xuống";
+    actions.append(copyButton, downloadButton);
+    block.before(actions);
+
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent ?? "");
+        copyButton.textContent = "Đã copy";
+      } catch {
+        copyButton.textContent = "Không thể copy";
+      }
+      window.setTimeout(() => { copyButton.textContent = "Copy"; }, 1600);
+    });
+
+    downloadButton.addEventListener("click", () => {
+      const source = new Blob([code.textContent ?? ""], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(source);
+      link.download = `lab-source-${index + 1}.txt`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 0);
+    });
+  });
+</script>
+

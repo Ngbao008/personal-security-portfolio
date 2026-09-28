@@ -1,0 +1,28 @@
+<button class="theme-toggle" type="button" aria-label="Đổi giao diện" aria-pressed="false" data-theme-toggle>
+  <span aria-hidden="true" data-theme-icon>◐</span>
+  <span class="sr-only">Đổi giao diện sáng hoặc tối</span>
+</button>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  const icon = document.querySelector<HTMLElement>("[data-theme-icon]");
+
+  const updateToggle = (theme: string) => {
+    toggle?.setAttribute("aria-pressed", String(theme === "light"));
+    if (icon) icon.textContent = theme === "light" ? "☀" : "◐";
+  };
+
+  updateToggle(document.documentElement.dataset.theme ?? "dark");
+
+  toggle?.addEventListener("click", () => {
+    const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = nextTheme;
+    try {
+      localStorage.setItem("theme", nextTheme);
+    } catch {
+      // The website still works when storage is unavailable.
+    }
+    updateToggle(nextTheme);
+  });
+</script>
+

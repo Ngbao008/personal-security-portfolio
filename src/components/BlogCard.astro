@@ -1,0 +1,23 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getReadingTime } from "../utils/reading-time";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const readingTime = getReadingTime(post.body ?? "");
+const formattedDate = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "long", year: "numeric" }).format(post.data.date);
+---
+
+<article class="blog-card" data-blog-post data-tags={post.data.tags.join("|").toLowerCase()}>
+  <p class="blog-meta"><time datetime={post.data.date.toISOString()}>{formattedDate}</time><span aria-hidden="true">·</span><span>{readingTime} phút đọc</span></p>
+  <h2><a href={withBase(`/blog/${post.id}/`)}>{post.data.title}</a></h2>
+  <p>{post.data.description}</p>
+  {post.data.ctf && <p class="ctf-meta">{post.data.ctf.event} · {post.data.ctf.category} · {post.data.ctf.difficulty}</p>}
+  <div class="tag-list project-tags">{post.data.tags.map((tag) => <span class="tag">{tag}</span>)}</div>
+  <a class="text-link blog-card-link" href={withBase(`/blog/${post.id}/`)}>Đọc bài viết →</a>
+</article>
+

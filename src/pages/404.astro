@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { withBase } from "../utils/paths";
+---
+
+<BaseLayout title="Không tìm thấy trang" description="Trang bạn tìm không tồn tại.">
+  <section class="section not-found">
+    <div class="container narrow">
+      <p class="eyebrow">error 404</p>
+      <h1>Không tìm thấy trang này.</h1>
+      <p class="lead">Có thể đường dẫn đã thay đổi hoặc trang chưa được tạo.</p>
+      <a class="button button-primary" href={withBase("/")}>Về trang chủ <span aria-hidden="true">→</span></a>
+    </div>
+  </section>
+</BaseLayout>
+

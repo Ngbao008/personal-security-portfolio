@@ -1,0 +1,26 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import LabCard from "../../components/LabCard.astro";
+
+const labs = (await getCollection("lab"))
+  .filter((lab) => !import.meta.env.PROD || !lab.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<BaseLayout title="Lab" description="Các công cụ học tập chạy an toàn trong trình duyệt.">
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">browser-only lab</p>
+      <h1>Lab</h1>
+      <p class="lead">Mọi tool chỉ chạy trong trình duyệt của người xem hoặc sandbox bên thứ ba; website không chạy mã của bạn trên server.</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container lab-grid">
+      {labs.map((lab) => <LabCard lab={lab} />)}
+    </div>
+  </section>
+</BaseLayout>
+

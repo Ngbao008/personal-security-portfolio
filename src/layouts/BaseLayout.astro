@@ -1,0 +1,70 @@
+---
+import "../styles/global.css";
+import { site } from "../data/site";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { withBase } from "../utils/paths";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  showPersonSchema?: boolean;
+}
+
+const { title = site.title, description = site.tagline, image = "/og-default.svg", showPersonSchema = false } = Astro.props;
+const fullTitle = title === site.title ? `${site.name} | ${title}` : `${title} | ${site.name}`;
+const canonicalUrl = new URL(Astro.url.pathname, site.url).toString();
+const imageUrl = new URL(image.startsWith("http") ? image : withBase(image), site.url).toString();
+const publicProfiles = Object.values(site.social).filter((profile) => profile && !profile.startsWith("TODO"));
+const personSchema = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: site.name,
+  jobTitle: site.title,
+  description: site.bio,
+  url: site.url,
+  sameAs: publicProfiles,
+}).replace(/</g, "\\u003c");
+---
+
+<!doctype html>
+<html lang="vi" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={imageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <title>{fullTitle}</title>
+    <script is:inline>
+      try {
+        const savedTheme = localStorage.getItem("theme");
+        const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+        document.documentElement.dataset.theme = savedTheme ?? (prefersLight ? "light" : "dark");
+      } catch {
+        document.documentElement.dataset.theme = "dark";
+      }
+    </script>
+    {showPersonSchema && <script type="application/ld+json" set:html={personSchema}></script>}
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Bỏ qua điều hướng</a>
+    <Header />
+    <main id="main-content"><slot /></main>
+    <Footer />
+  </body>
+</html>
+

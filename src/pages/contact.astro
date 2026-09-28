@@ -1,0 +1,72 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Liên hệ" description="Gửi lời nhắn qua biểu mẫu liên hệ.">
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">contact</p>
+      <h1>Hãy để lại lời nhắn</h1>
+      <p class="lead">Thông tin chỉ được gửi tới dịch vụ biểu mẫu khi bạn nhấn Gửi; website này không tự lưu dữ liệu.</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container narrow">
+      <form class="contact-form" action="https://api.web3forms.com/submit" method="POST" data-contact-form>
+        <input type="hidden" name="access_key" value="TODO: Web3Forms access key" data-access-key />
+        <input class="honeypot" type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <div class="form-field">
+          <label for="name">Tên</label>
+          <input id="name" name="name" type="text" autocomplete="name" maxlength="80" required />
+        </div>
+        <div class="form-field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required />
+        </div>
+        <div class="form-field">
+          <label for="message">Nội dung</label>
+          <textarea id="message" name="message" rows="7" maxlength="3000" required></textarea>
+        </div>
+        <button class="button button-primary" type="submit" data-submit>Gửi lời nhắn <span aria-hidden="true">→</span></button>
+        <p class="form-status" aria-live="polite" data-form-status></p>
+      </form>
+      <p class="form-note">TODO: Thay khóa Web3Forms trong tệp này trước khi dùng biểu mẫu.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+  const status = document.querySelector<HTMLElement>("[data-form-status]");
+  const submitButton = document.querySelector<HTMLButtonElement>("[data-submit]");
+  const accessKey = document.querySelector<HTMLInputElement>("[data-access-key]");
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!accessKey?.value || accessKey.value.startsWith("TODO:")) {
+      if (status) status.textContent = "Biểu mẫu chưa được cấu hình. Hãy thêm Web3Forms access key trước khi sử dụng.";
+      return;
+    }
+
+    if (status) status.textContent = "Đang gửi…";
+    if (submitButton) submitButton.disabled = true;
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      const result = await response.json() as { success?: boolean; message?: string };
+      if (!response.ok || !result.success) throw new Error(result.message || "Không thể gửi biểu mẫu.");
+      form.reset();
+      if (status) status.textContent = "Đã gửi thành công. Cảm ơn bạn!";
+    } catch {
+      if (status) status.textContent = "Không thể gửi lúc này. Vui lòng thử lại sau.";
+    } finally {
+      if (submitButton) submitButton.disabled = false;
+    }
+  });
+</script>
+

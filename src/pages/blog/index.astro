@@ -1,0 +1,58 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import BlogCard from "../../components/BlogCard.astro";
+
+const posts = (await getCollection("blog"))
+  .filter((post) => !import.meta.env.PROD || !post.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const tags = [...new Set(posts.flatMap((post) => post.data.tags))].sort((a, b) => a.localeCompare(b, "vi"));
+---
+
+<BaseLayout title="Blog" description="Ghi chú học tập và writeup CTF có trách nhiệm.">
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">notes & writeups</p>
+      <h1>Blog</h1>
+      <p class="lead">Ghi chú học tập, dự án và writeup CTF trong phạm vi được phép.</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container narrow">
+      <div class="filter-group" role="group" aria-label="Lọc bài viết theo tag">
+        <button class="filter-button active" type="button" aria-pressed="true" data-blog-filter="all">Tất cả</button>
+        {tags.map((tag) => <button class="filter-button" type="button" aria-pressed="false" data-blog-filter={tag.toLowerCase()}>{tag}</button>)}
+      </div>
+      <div class="blog-list" data-blog-list>
+        {posts.map((post) => <BlogCard post={post} />)}
+      </div>
+      <p class="empty-filter" hidden data-blog-empty>Chưa có bài viết phù hợp.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const buttons = document.querySelectorAll<HTMLButtonElement>("[data-blog-filter]");
+  const posts = document.querySelectorAll<HTMLElement>("[data-blog-post]");
+  const emptyMessage = document.querySelector<HTMLElement>("[data-blog-empty]");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const tag = button.dataset.blogFilter ?? "all";
+      let visibleCount = 0;
+      posts.forEach((post) => {
+        const isVisible = tag === "all" || post.dataset.tags?.split("|").includes(tag);
+        post.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+      buttons.forEach((item) => {
+        const isActive = item === button;
+        item.classList.toggle("active", isActive);
+        item.setAttribute("aria-pressed", String(isActive));
+      });
+      if (emptyMessage) emptyMessage.hidden = visibleCount > 0;
+    });
+  });
+</script>
+

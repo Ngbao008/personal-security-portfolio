@@ -1,0 +1,48 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../data/site";
+import { timeline } from "../data/timeline";
+import { withBase } from "../utils/paths";
+---
+
+<BaseLayout title="Giới thiệu" description={`Giới thiệu về ${site.name}`} showPersonSchema>
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">about me</p>
+      <h1>Xin chào, mình là {site.name}.</h1>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container about-grid">
+      <div class="avatar-placeholder" role="img" aria-label="Vị trí ảnh đại diện">TODO<br />ảnh đại diện</div>
+      <div>
+        <h2>Hành trình của mình</h2>
+        <p class="prose">{site.bio}</p>
+        <dl class="facts">
+          <div><dt>Trường</dt><dd>{site.university}</dd></div>
+          <div><dt>Địa điểm</dt><dd>{site.location}</dd></div>
+          <div><dt>Định hướng</dt><dd>{site.careerFocus.join(" · ")}</dd></div>
+        </dl>
+        <a class="button button-primary" href={withBase(site.cvUrl)} download>Tải CV <span aria-hidden="true">↓</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container narrow">
+      <p class="eyebrow">timeline</p>
+      <h2>Các cột mốc</h2>
+      <ol class="timeline">
+        {timeline.map((item) => (
+          <li>
+            <p class="timeline-date">{item.date}</p>
+            <h3>{item.title}</h3>
+            {item.detail && <p>{item.detail}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</BaseLayout>
+

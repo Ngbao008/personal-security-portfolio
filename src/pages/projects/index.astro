@@ -1,0 +1,74 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+
+const projects = (await getCollection("projects"))
+  .filter((project) => !import.meta.env.PROD || !project.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const tags = [...new Set(projects.flatMap((project) => project.data.tags))].sort((a, b) => a.localeCompare(b, "vi"));
+---
+
+<BaseLayout title="Projects" description="Các dự án đã và đang thực hiện.">
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">project archive</p>
+      <h1>Projects</h1>
+      <p class="lead">Mỗi dự án là một tệp Markdown. Thêm tệp mới vào <code>src/content/projects</code> để hiển thị tại đây.</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container">
+      <div class="project-controls">
+        <label class="search-field" for="project-search">
+          <span>Tìm theo tên</span>
+          <input id="project-search" type="search" placeholder="Nhập tên project…" autocomplete="off" data-project-search />
+        </label>
+        <div class="filter-group" role="group" aria-label="Lọc theo tag">
+          <button class="filter-button active" type="button" aria-pressed="true" data-tag-filter="all">Tất cả</button>
+          {tags.map((tag) => <button class="filter-button" type="button" aria-pressed="false" data-tag-filter={tag.toLowerCase()}>{tag}</button>)}
+        </div>
+      </div>
+      <div class="project-grid" data-project-grid>
+        {projects.map((project) => <ProjectCard project={project} />)}
+      </div>
+      <p class="empty-filter" hidden data-project-empty>Không tìm thấy project phù hợp.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const searchInput = document.querySelector<HTMLInputElement>("[data-project-search]");
+  const filterButtons = document.querySelectorAll<HTMLButtonElement>("[data-tag-filter]");
+  const projects = document.querySelectorAll<HTMLElement>("[data-project]");
+  const emptyMessage = document.querySelector<HTMLElement>("[data-project-empty]");
+  let activeTag = "all";
+
+  const applyFilters = () => {
+    const query = searchInput?.value.trim().toLowerCase() ?? "";
+    let visibleCount = 0;
+    projects.forEach((project) => {
+      const matchesSearch = !query || project.dataset.title?.includes(query);
+      const matchesTag = activeTag === "all" || project.dataset.tags?.split("|").includes(activeTag);
+      const isVisible = Boolean(matchesSearch && matchesTag);
+      project.hidden = !isVisible;
+      if (isVisible) visibleCount += 1;
+    });
+    if (emptyMessage) emptyMessage.hidden = visibleCount > 0;
+  };
+
+  searchInput?.addEventListener("input", applyFilters);
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      activeTag = button.dataset.tagFilter ?? "all";
+      filterButtons.forEach((item) => {
+        const isActive = item === button;
+        item.classList.toggle("active", isActive);
+        item.setAttribute("aria-pressed", String(isActive));
+      });
+      applyFilters();
+    });
+  });
+</script>
+

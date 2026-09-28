@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { certs } from "../data/certs";
+import CertCard from "../components/CertCard.astro";
+
+const earnedCerts = certs.filter((cert) => cert.status === "earned");
+const inProgressCerts = certs.filter((cert) => cert.status === "in-progress");
+---
+
+<BaseLayout title="Chứng chỉ" description="Chứng chỉ đã đạt và đang học.">
+  <section class="section page-hero">
+    <div class="container narrow">
+      <p class="eyebrow">credentials</p>
+      <h1>Chứng chỉ & học tập</h1>
+      <p class="lead">Chỉ hiển thị thông tin và đường dẫn xác minh mà bạn chủ động công khai.</p>
+    </div>
+  </section>
+
+  <section class="section section-muted">
+    <div class="container">
+      <p class="eyebrow">earned</p>
+      <h2>Đã đạt</h2>
+      <div class="card-grid">
+        {earnedCerts.map((cert) => <CertCard cert={cert} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <p class="eyebrow">in progress</p>
+      <h2>Đang học</h2>
+      <div class="card-grid">
+        {inProgressCerts.map((cert) => <CertCard cert={cert} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
