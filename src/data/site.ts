@@ -4,7 +4,7 @@ export const site = {
   name: "Nguyễn Gia Bảo",
   handle: "gbaoo",
   title: "Sinh viên An toàn Thông tin",
-  tagline: "TODO: một câu giới thiệu ngắn",
+  tagline: "Hiện tại sinh viên ngành An toàn Thông tin mục tiêu đi theo hướng SOC Analyst hoặc Threat Hunting.",
   bio: "Hiện tại tôi là sinh viên chuyên ngành An toàn Thông tin, định hướng của tôi là làm ở lĩnh vực SOC Analyst.",
   university: "Trường Đại học Nam Cần Thơ - Nam Can Tho University",
   location: "Tp. Cần Thơ, Việt Nam",
