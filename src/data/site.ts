@@ -1,8 +1,8 @@
 import { githubPagesUrl } from "../utils/github-pages";
 
 export const site = {
-  name: "TODO: Họ và tên",
-  handle: "TODO: nickname",
+  name: "Nguyễn Gia Bảo",
+  handle: "gbaoo",
   title: "TODO: Sinh viên An toàn Thông tin",
   tagline: "TODO: một câu giới thiệu ngắn",
   bio: "TODO: Viết 3-5 câu giới thiệu về bạn, lĩnh vực đang học và điều bạn muốn theo đuổi.",
